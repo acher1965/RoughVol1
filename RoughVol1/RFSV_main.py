@@ -11,7 +11,7 @@ finally close output excel file
 
 from datetime import datetime
 from RFSV_functions import hard_coded_params, calculate_request
-from RFSV_helpers import read_args, get_and_check_input, create_new_workbook, write_results_to_sheet
+from RFSV_helpers import read_args, get_and_check_input, get_inputs_from_row, create_new_workbook, write_results_to_sheet
 
 def main():
     ''' The main for RFSV bruteforce, rBergomi model'''
@@ -27,8 +27,9 @@ def main():
     writer = create_new_workbook(output_file)
         
     for row in row_list:
-        r = row - 1        
-        results = calculate_request(hc,df_input, r)        
+        r = row - 1
+        row_inputs = get_inputs_from_row(df_input, r, hc.tenor_len)
+        results = calculate_request(hc,df_input, row_inputs)
         write_results_to_sheet(writer, results)
         
     writer.close()

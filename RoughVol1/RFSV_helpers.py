@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from os import path
 from os import path, chdir
+import collections # why this not working??  from collections import namedtuple
 
 def read_args():
     ''' read the command line arguments'''
@@ -50,13 +51,14 @@ def get_and_check_input(input_path):
     destinations = df_input_T.loc['Destination']
     destination = destinations[0]
     for d in destinations:
-        if(d!=destination):
+        if(d != destination):
             printf('destination must be the same in all rows in the row_list')
             exit(1)
     
     return destination, df_input_T
 
-def get_scalar_inputs_from_row(df_input, row):
+RFSV_RowInputs = collections.namedtuple('RFSV_RowInputs',['request_id', 'as_of', 'n', 'random_seed', 'S_0', 'underlying', 'H', 'eta', 'rho', 'expiries_nan', 'forward_input_nan', 'xi_input_nan'])
+def get_inputs_from_row(df_input, row, tenor_len):
     ''' get row specific inputs '''
     
     request_id = df_input.loc['Row'][row]
@@ -68,15 +70,12 @@ def get_scalar_inputs_from_row(df_input, row):
     H = df_input.loc['Roughness(Hurst)'][row]
     eta = df_input.loc['VolVol(Eta)'][row]
     rho = df_input.loc['Correlation(Rho)'][row]
-    return request_id, as_of, n, random_seed, S_0, underlying, H,eta, rho
-
-def get_array_inputs_from_row(df_input, row, tenor_len):
-    '''read the 3 arrays in each row'''
     
-    expiries_nan = df_input.loc['Tenor1':'Tenor'+str(tenor_len)][row].to_numpy(dtype = 'float64', copy = True).reshape(tenor_len)
-    forward_input_nan = df_input.loc['Fwd1':'Fwd'+str(tenor_len)][row].to_numpy(dtype = 'float64', copy = True).reshape(tenor_len)
-    xi_input_nan = (df_input.loc['Impvar1':'Impvar'+str(tenor_len)][row].to_numpy(dtype = 'float64', copy = True).reshape(tenor_len))**2
-    return [expiries_nan, forward_input_nan, xi_input_nan]
+    expiries_nan = df_input.loc['Tenor1':'Tenor' + str(tenor_len)][row].to_numpy(dtype = 'float64', copy = True).reshape(tenor_len)
+    forward_input_nan = df_input.loc['Fwd1':'Fwd' + str(tenor_len)][row].to_numpy(dtype = 'float64', copy = True).reshape(tenor_len)
+    xi_input_nan = (df_input.loc['Impvar1':'Impvar' + str(tenor_len)][row].to_numpy(dtype = 'float64', copy = True).reshape(tenor_len)) ** 2
+    return RFSV_RowInputs(request_id, as_of, n, random_seed, S_0, underlying, H, eta, rho, expiries_nan, forward_input_nan, xi_input_nan)
+
 
 def create_new_workbook(filename):
     '''Create a new excel workbook and return it'''
@@ -87,7 +86,7 @@ def create_new_workbook(filename):
     writer = pd.ExcelWriter(filename, engine = 'openpyxl', mode = 'w')
     return writer
 
-def write_results_to_sheet( writer, results):
+def write_results_to_sheet(writer, results):
     ''' Adds a sheet to workbook 'writer' and writes the results of this request to it'''
     r = results
     sheet_name = 'Id' + str(r.request_id)
