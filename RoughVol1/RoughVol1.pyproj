@@ -12,8 +12,9 @@
     <Name>RoughVol1</Name>
     <RootNamespace>RoughVol1</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-f C:/Users/abech/OneDrive/EQFAugustoShare/Alberto/Running -x RFSV_input_AC.xlsx 20</CommandLineArguments>
+    <CommandLineArguments>--help</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
+    <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>

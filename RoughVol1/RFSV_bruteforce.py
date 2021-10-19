@@ -9,16 +9,20 @@ import platform
 from datetime import datetime
 
 #command line args
+#e.g. --help
+#or -f C:/Users/abech/OneDrive/EQFAugustoShare/Alberto/Running -x RFSV_input_AC.xlsx 1 2 3 20
 import argparse
 parser = argparse.ArgumentParser(description='Run a set of RoughVol Brute-Force requests')
-parser.add_argument('-f','--folder',default='.',help='the folder to run from') #'C:/Users/abech/OneDrive/EQFAugustoShare/Alberto/Running'
-parser.add_argument('-x','--xlsx',default='RFSV_input.xlsx',help='the input excel spreadsheet , each row defines a request') #RFSV_input_AC.xlsx
-parser.add_argument('request_list',type=int,nargs='+', help='the set of requests to run. 1 indicates the 3rd row in input xlsx file')
+parser.add_argument('-f','--folder',default='.',help='the folder to run from')
+parser.add_argument('-x','--xlsx',default='RFSV_input.xlsx',help='the input excel spreadsheet , each row defines a request') 
+group = parser.add_mutually_exclusive_group()
+group.add_argument('row_list',type=int,nargs='+', help='the set of rows in XLSX to run. 0 to run the last one.')
+group.add_argument('-a','--all',action='store_true', help='NOT IMPLEMENTED YET (to run all requests in the file')
 args = parser.parse_args()
 
 chdir(args.folder) # set the running folder
 input_path = args.xlsx
-request_id_list = args.request_list # [20] #[i for i in range(1,2+1)] #[i for i in range(1,20+1)] # [1,2,5]
+request_id_list = args.request_list #note: they are actually row-index (1 stands for 3rd row), not the ids... change name
 
 # Hard-coded parameters
 N_treshold = 10
