@@ -4,13 +4,16 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>c7564293-e314-4815-85c3-602fc1ab34ac</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>RoughVol1.py</StartupFile>
+    <StartupFile>RFSV_bruteforce.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>RoughVol1</Name>
     <RootNamespace>RoughVol1</RootNamespace>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <CommandLineArguments>-f C:/Users/abech/OneDrive/EQFAugustoShare/Alberto/Running -x RFSV_input_AC.xlsx 20</CommandLineArguments>
+    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -23,7 +26,6 @@
   <ItemGroup>
     <Compile Include="RFSV_bruteforce.py" />
     <Compile Include="RFSV_functions.py" />
-    <Compile Include="RoughVol1.py" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 import numpy as np
 import pandas as pd
 from scipy import stats, optimize, special
@@ -9,19 +8,22 @@ from os import path, chdir
 import platform
 from datetime import datetime
 
-# importing all functions needed
-chdir('C:/Users/abech/OneDrive/EQFAugustoShare/Alberto/Running')
-from RFSV_functions_1_0_0 import *
+#command line args
+import argparse
+parser = argparse.ArgumentParser(description='Run a set of RoughVol Brute-Force requests')
+parser.add_argument('-f','--folder',default='.',help='the folder to run from') #'C:/Users/abech/OneDrive/EQFAugustoShare/Alberto/Running'
+parser.add_argument('-x','--xlsx',default='RFSV_input.xlsx',help='the input excel spreadsheet , each row defines a request') #RFSV_input_AC.xlsx
+parser.add_argument('request_list',type=int,nargs='+', help='the set of requests to run. 1 indicates the 3rd row in input xlsx file')
+args = parser.parse_args()
 
-## INSERT INPUT FILE PATH [AND REQUESTED IDs]
-input_path = 'RFSV_input_AC.xlsx'
-request_id_list = [20] # [i for i in range(1,2+1)]#[i for i in range(1,20+1)]   # [1,2,5]
+chdir(args.folder) # set the running folder
+input_path = args.xlsx
+request_id_list = args.request_list # [20] #[i for i in range(1,2+1)] #[i for i in range(1,20+1)] # [1,2,5]
 
 # Hard-coded parameters
 N_treshold = 10
-dt_short, dt_inf, alpha = 1/25/365, 6/365, 0.5        # parameters for time steps
-
-strikes = np.arange(-2.5,2.5+0.5,0.5)       # in stdev terms
+dt_short, dt_inf, alpha = 1 / 25 / 365, 6 / 365, 0.5        # parameters for time steps
+strikes = np.arange(-2.5,2.5 + 0.5,0.5)       # in stdev terms
 near_atm_strikes = np.linspace(-0.5,0.5,11)[np.isin(np.linspace(-0.5,0.5,11), strikes, invert = True)]
 strikes = np.sort(np.hstack([strikes, near_atm_strikes]))
 
@@ -29,6 +31,10 @@ dK_skew = 0.01       # also for smile
 tenor_len = 10       # default length of tenor
 code_version = 'RFSV_bruteforce_1_0_0'
 
+# importing all functions needed
+from RFSV_functions import *
+
+#check
 control_request_id_list(request_id_list)
 
 for request_counter in range(len(request_id_list)):
@@ -38,7 +44,7 @@ for request_counter in range(len(request_id_list)):
 
     id_input = request_id_list[request_counter]
     [df_input, request_id, as_of, destination_file, S_0, underlying] = df_info_parameters(input_path, id_input, index)
-    output_path =destination_file + datetime.today().strftime('%Y%m%d') + '_' + datetime.now().time().strftime('%H%M%S') + '_' + underlying + '.xlsx'
+    output_path = destination_file + datetime.today().strftime('%Y%m%d') + '_' + datetime.now().time().strftime('%H%M%S') + '_' + underlying + '.xlsx'
     [H, eta, rho] = rough_vol_parameters(df_input)
     [expiries_nan, forward_input_nan, xi_input_nan] = arrays_parameters(df_input, tenor_len)
     [expiries, forward_input, xi_input] = arrays_control(expiries_nan, forward_input_nan, xi_input_nan)
@@ -89,6 +95,6 @@ for request_counter in range(len(request_id_list)):
     writing_parameters_col(writer, df_info, df_model, df_sim, df_diagn, df_int_var_std, sheet_name)
     writing_results(writer, df_term, df_strikes, df_IV, df_skew_smile, df_IV_approx, df_skew_smile_approx, sheet_name)
 
-    # save_plot_path, plotting_error = vol_surface_plot(IV, K, expiries, output_path, request_id, warn)
-    
-writer.save()
+    # save_plot_path, plotting_error = vol_surface_plot(IV, K, expiries,
+    # output_path, request_id, warn)
+    writer.save()
