@@ -4,9 +4,68 @@ Created on Fri Sep 24 12:03:03 2021
 
 @author: amarc
 """
-
+import time
+import collections
 import numpy as np
 from scipy import stats, special, optimize, integrate
+from RFSV_helpers import get_scalar_inputs_from_row, get_array_inputs_from_row
+
+#Hard Coded Parameters
+HardCodedParameters = collections.namedtuple('HardCodedParameters',['N_treshold', 'code_version', 'dK_skew', 'near_atm_strikes', 'strikes', 'tenor_len', 'dt_short', 'dt_inf', 'alpha'])
+def hard_coded_params():
+    ''' Hard-coded parameters'''
+    N_treshold = 10
+    dt_short, dt_inf, alpha = 1 / 25 / 365, 6 / 365, 0.5        # parameters for time steps
+    strikes = np.arange(-2.5,2.5 + 0.5,0.5)       # in stdev terms
+    near_atm_strikes = np.linspace(-0.5,0.5,11)[np.isin(np.linspace(-0.5,0.5,11), strikes, invert = True)]
+    strikes = np.sort(np.hstack([strikes, near_atm_strikes]))
+    
+    dK_skew = 0.01       # also for smile
+    tenor_len = 10       # default length of tenor
+    code_version = 'RFSV_bruteforce_1_0_0'
+    return HardCodedParameters(N_treshold, code_version, dK_skew, near_atm_strikes, strikes, tenor_len, dt_short, dt_inf, alpha)
+
+#Calculation of one request row
+def calculate_request(hc, df_input, r):    
+    start_time = time.time()
+    
+    request_id, as_of, n, random_seed, S_0, underlying, H, eta, rho = get_scalar_inputs_from_row(df_input, r)                
+    [expiries_nan, forward_input_nan, xi_input_nan] = get_array_inputs_from_row(df_input, r, hc.tenor_len)
+    
+    [expiries, forward_input, xi_input] = arrays_control(expiries_nan, forward_input_nan, xi_input_nan)
+    [expiries_nan, forward_input_nan, xi_input_nan] = arrays_for_output(expiries, forward_input, xi_input, hc.tenor_len)
+    
+    t, mv = t_from_dt_e(hc.dt_short, hc.dt_inf, hc.alpha, expiries)
+    T = expiries[-1]
+    expiries_index = np.where(np.isin(t, expiries))[0]  
+    xi, xi_values = interpolating_xi(xi_input, expiries, mv)
+    
+    Sigma = Sigma_calculation(t,H,rho)
+    L = np.linalg.cholesky(Sigma)
+    
+    logS, S, logv = spot_calculation(t, S_0, xi, eta, H, L, n, random_seed)
+    
+    K, C, K_skew, C_skew, warn = MC_strike_and_price(S, S_0 , expiries, t, hc.strikes, hc.dK_skew, xi, n, hc.N_treshold)
+    IV, IV_skew = imp_vol_calculation(K, C, K_skew, C_skew, S_0, expiries)
+    skew, smile = skew_smile_calculation(IV_skew, hc.dK_skew)
+    sign_bound, Sigma0_d, Sigma0_dd, a_0 = Sigma_Taylor_coefficients(H, rho, eta, xi, expiries)
+    IV_approx, skew_approx, smile_approx, IV_skew_approx = imp_vol_approx(K, K_skew, S_0, expiries, xi, H, rho, eta, hc.tenor_len)
+    
+    df_info = df_info_creation(request_id, underlying, as_of, S_0)
+    df_sim = df_sim_creation(n, hc.N_treshold, random_seed, t.size)
+    df_model = df_model_creation(H, eta, rho)
+    end_time = time.time()
+    total_time = end_time - start_time
+    df_diagn = df_diagn_creation(hc.dK_skew, hc.dt_short, hc.dt_inf, hc.alpha, total_time, hc.code_version, Sigma0_d, Sigma0_dd, a_0)
+    df_int_var_std = df_integ_var_std_creation(logS, logv, xi_input, xi_values, t, expiries, xi, H, eta, T)
+    
+    df_term = df_term_creation(expiries_nan, forward_input_nan, xi_input_nan)
+    df_strikes = df_strikes_creation(K, hc.strikes, S_0, hc.tenor_len)
+    IV_df, df_IV = df_IV_creation(IV, hc.strikes, hc.tenor_len)
+    df_skew_smile = df_skew_smile_creation(skew, smile, IV_skew, IV_df, hc.strikes, hc.dK_skew, expiries_nan, hc.tenor_len)
+    IV_approx_df, df_IV_approx = df_IV_creation(IV_approx, hc.strikes, hc.tenor_len, 'Approx')
+    df_skew_smile_approx = df_skew_smile_creation(skew_approx, smile_approx, IV_skew_approx, IV_approx_df, hc.strikes, hc.dK_skew, expiries_nan, hc.tenor_len)
+    return request_id, df_diagn, df_info, df_int_var_std, df_model, df_sim, df_skew_smile, df_skew_smile_approx, df_strikes, df_term, df_IV, df_IV_approx
 
 # For other parameters calculation
 def parameter_with_H(H):
@@ -29,7 +88,6 @@ def t_from_dt_e(dt_short, dt_inf, alpha, e):
         mv[i] = t.size
     mv = np.diff(mv, prepend = 0).astype(int)
     return t, mv
-
 
 # Functions for computing Covariance matrix Sigma
 def cov_W(j,t,gamma):
@@ -105,39 +163,6 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d
 from matplotlib import cm
-
-def control_request_id_list(request_id_list):
-    if not(isinstance(request_id_list, list)):
-        print("'request_id_list' must be a list, even with just an element.")
-        return -1     # break
-    
-def index_from_input(input_path):
-    df_input = pd.read_excel(input_path, header = 0, skiprows = 1, nrows = 0)
-    index = df_input.columns
-    return index
-
-def df_info_parameters(input_path, id_input, index):
-    df_input = pd.read_excel(input_path, header = None, skiprows = id_input + 1, nrows = 1).T
-    df_input.index = index
-    df_input = df_input.replace('#N/A\xa0', np.nan)
-    request_id =  df_input.loc['Request Id'][0]
-    as_of = df_input.loc['Date'][0].strftime('%d-%m-%Y')   # changing format using strftime(), see https://strftime.org/
-    destination_file = df_input.loc['Destination File'][0]
-    S_0 = df_input.loc['Spot'][0]
-    underlying = df_input.loc['Underlying'][0]
-    return [df_input, request_id, as_of, destination_file, S_0, underlying]
-
-def rough_vol_parameters(df_input):
-    H = df_input.loc['Roughness(Hurst)'][0]
-    eta = df_input.loc['VolVol(Eta)'][0]
-    rho = df_input.loc['Correlation(Rho)'][0]
-    return [H, eta, rho]
-
-def arrays_parameters(df_input, tenor_len):
-    expiries_nan = df_input.loc['Tenor1':'Tenor'+str(tenor_len)].to_numpy(dtype = 'float64', copy = True).reshape(tenor_len)
-    forward_input_nan = df_input.loc['Fwd1':'Fwd'+str(tenor_len)].to_numpy(dtype = 'float64', copy = True).reshape(tenor_len)
-    xi_input_nan = (df_input.loc['Impvar1':'Impvar'+str(tenor_len)].to_numpy(dtype = 'float64', copy = True).reshape(tenor_len))**2
-    return [expiries_nan, forward_input_nan, xi_input_nan]
 
 def arrays_control(expiries_nan, forward_input_nan, xi_input_nan):
     a = np.isfinite(expiries_nan)
@@ -497,44 +522,6 @@ def df_skew_smile_creation(skew, smile, IV_skew, IV_df, strikes, dK_skew, expiri
                                                        axis = 1), index = expiries_nan, columns = col_names).T
     df_skew_smile.index.name = 'Tenor'
     return df_skew_smile
-
-def creating_new_file(output_path, request_id):
-    if (not path.exists(output_path)):               # Creating a new file if it does not exist 
-        wb = Workbook()
-        wb.active.title = 'Id' + str(request_id)
-        wb.save(output_path)
-
-def writing_parameters_col(writer, df_info, df_model, df_sim, df_diagn, df_int_var_std, sheet_name):
-    startrow = 0
-    df_info.to_excel(writer, header = None, index = True, sheet_name = sheet_name)
-    startrow = startrow + df_info.shape[0] + 1
-    df_model.to_excel(writer, header = True, index = True, startrow = startrow, sheet_name = sheet_name)
-    startrow = startrow + df_sim.shape[0] + 2
-    df_sim.to_excel(writer, header = True, index = True, startrow = startrow, sheet_name = sheet_name)
-    startrow = startrow + df_sim.shape[0] + 2
-    df_diagn.to_excel(writer, header = True, index = True, startrow = startrow, sheet_name = sheet_name)
-    startrow = startrow + df_diagn.shape[0] + 2
-    df_int_var_std.to_excel(writer, header = True, index = True, startrow = startrow, sheet_name = sheet_name)
-
-def writing_results(writer, df_term, df_strikes, df_IV, df_skew_smile, df_IV_approx, df_skew_smile_approx, sheet_name):
-    startrow = 0
-    df_term.to_excel(writer, header = None, index = True, na_rep = '#N/A', startcol = 3,
-                    startrow = startrow, sheet_name = sheet_name)
-    startrow = startrow + df_term.shape[0]
-    df_strikes.to_excel(writer, header = True, index = True, na_rep = '#N/A', startcol = 3,
-                        startrow = startrow, sheet_name = sheet_name)
-    startrow = startrow + df_strikes.shape[0] + 1
-    df_IV.to_excel(writer, header = True, index = True, na_rep = '#N/A', startcol = 3, 
-                  startrow = startrow, sheet_name = sheet_name)
-    startrow = startrow + df_IV.shape[0] + 1
-    df_skew_smile.to_excel(writer, header = True, index = True, na_rep = '#N/A', startcol = 3, 
-                  startrow = startrow, sheet_name = sheet_name)
-    startrow = startrow + df_skew_smile.shape[0] + 1
-    df_IV_approx.to_excel(writer, header = True, index = True, na_rep = '#N/A', startcol = 3, 
-                  startrow = startrow, sheet_name = sheet_name)  
-    startrow = startrow + df_IV_approx.shape[0] + 1    
-    df_skew_smile_approx.to_excel(writer, header = True, index = True, na_rep = '#N/A', startcol = 3, 
-                  startrow = startrow, sheet_name = sheet_name)   
 
 def vol_surface_plot(IV, K, expiries, output_path, request_id, warn):
     # Scatter plot needs 1D arrays

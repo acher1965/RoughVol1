@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>c7564293-e314-4815-85c3-602fc1ab34ac</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>RFSV_bruteforce.py</StartupFile>
+    <StartupFile>RFSV_main.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -12,7 +12,7 @@
     <Name>RoughVol1</Name>
     <RootNamespace>RoughVol1</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>--help</CommandLineArguments>
+    <CommandLineArguments>-f C:/Users/abech/OneDrive/EQFAugustoShare/Alberto/Running -x RFSV_input_AC2.xlsx 2 3</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
@@ -25,7 +25,8 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="RFSV_bruteforce.py" />
+    <Compile Include="RFSV_main.py" />
+    <Compile Include="RFSV_helpers.py" />
     <Compile Include="RFSV_functions.py" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
