@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
-import numpy as np
-import pandas as pd
-from scipy import stats, optimize, special
 
-from openpyxl import load_workbook, Workbook
-import platform
 
 # importing all functions needed
 from RFSV_functions import *

@@ -156,8 +156,6 @@ def BSM_imp_vol(S_0, K, T, price):
 
 
 import pandas as pd
-from openpyxl import Workbook
-from os import path
 import platform
 from datetime import datetime
 import matplotlib.pyplot as plt

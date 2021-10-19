@@ -6,15 +6,8 @@ Extracted then modified from the original RFSV_functions.py
 
 import numpy as np
 import pandas as pd
-from openpyxl import Workbook
 from os import path
-import platform
-from datetime import datetime
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import axes3d
-from matplotlib import cm
 from os import path, chdir
-from datetime import datetime
 
 def read_args():
     ''' read the command line arguments'''
