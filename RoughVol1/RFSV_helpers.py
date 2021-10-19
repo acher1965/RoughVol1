@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
-Helper functions for RFSV.
-Extracted then modified from the original RFSV_functions.py
-"""
+''' This module has non-math helper functions for RFSV bruteforce:
+input, input checks, and output
+'''
 
 import numpy as np
 import pandas as pd
@@ -88,11 +87,12 @@ def create_new_workbook(filename):
     writer = pd.ExcelWriter(filename, engine = 'openpyxl', mode = 'w')
     return writer
 
-def write_results_to_sheet( writer, request_id, df_diagn, df_info, df_int_var_std, df_model, df_sim, df_skew_smile, df_skew_smile_approx, df_strikes, df_term,df_IV,df_IV_approx):
+def write_results_to_sheet( writer, results):
     ''' Adds a sheet to workbook 'writer' and writes the results of this request to it'''
-    sheet_name = 'Id' + str(request_id)
-    writing_parameters_col(writer, df_info, df_model, df_sim, df_diagn, df_int_var_std, sheet_name)
-    writing_results(writer, df_term, df_strikes, df_IV, df_skew_smile, df_IV_approx, df_skew_smile_approx, sheet_name)
+    r = results
+    sheet_name = 'Id' + str(r.request_id)
+    writing_parameters_col(writer, r.df_info, r.df_model, r.df_sim, r.df_diagn, r.df_int_var_std, sheet_name)
+    writing_results(writer, r.df_term, r.df_strikes, r.df_IV, r.df_skew_smile, r.df_IV_approx, r.df_skew_smile_approx, sheet_name)
     #writer.save()
     return
 

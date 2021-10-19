@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Sep 24 12:03:03 2021
+''' This module implements functions to run RFSV simulations bruteforce
+Most functions written by Augusto Marcon.
+AC added:
+*hard_coded_params  function encapsulating previous code
+*calculate_request  function with the top level math logic
 
 @author: amarc
-"""
+'''
+
 import time
-import collections
+import collections # why not working?? from collections import namedtuple
 import numpy as np
 from scipy import stats, special, optimize, integrate
 from RFSV_helpers import get_scalar_inputs_from_row, get_array_inputs_from_row
@@ -26,11 +30,13 @@ def hard_coded_params():
     return HardCodedParameters(N_treshold, code_version, dK_skew, near_atm_strikes, strikes, tenor_len, dt_short, dt_inf, alpha)
 
 #Calculation of one request row
-def calculate_request(hc, df_input, r):    
+RFSV_BF_Results =collections.namedtuple('RFSV_BF_Results',['request_id', 'df_diagn', 'df_info', 'df_int_var_std', 'df_model', 'df_sim', 'df_skew_smile', 'df_skew_smile_approx', 'df_strikes', 'df_term', 'df_IV', 'df_IV_approx'])
+def calculate_request(hc, df_input, row): 
+    ''' Run the simulations RFSV bruteforce for one request'''
     start_time = time.time()
     
-    request_id, as_of, n, random_seed, S_0, underlying, H, eta, rho = get_scalar_inputs_from_row(df_input, r)                
-    [expiries_nan, forward_input_nan, xi_input_nan] = get_array_inputs_from_row(df_input, r, hc.tenor_len)
+    request_id, as_of, n, random_seed, S_0, underlying, H, eta, rho = get_scalar_inputs_from_row(df_input, row)                
+    [expiries_nan, forward_input_nan, xi_input_nan] = get_array_inputs_from_row(df_input, row, hc.tenor_len)
     
     [expiries, forward_input, xi_input] = arrays_control(expiries_nan, forward_input_nan, xi_input_nan)
     [expiries_nan, forward_input_nan, xi_input_nan] = arrays_for_output(expiries, forward_input, xi_input, hc.tenor_len)
@@ -65,7 +71,7 @@ def calculate_request(hc, df_input, r):
     df_skew_smile = df_skew_smile_creation(skew, smile, IV_skew, IV_df, hc.strikes, hc.dK_skew, expiries_nan, hc.tenor_len)
     IV_approx_df, df_IV_approx = df_IV_creation(IV_approx, hc.strikes, hc.tenor_len, 'Approx')
     df_skew_smile_approx = df_skew_smile_creation(skew_approx, smile_approx, IV_skew_approx, IV_approx_df, hc.strikes, hc.dK_skew, expiries_nan, hc.tenor_len)
-    return request_id, df_diagn, df_info, df_int_var_std, df_model, df_sim, df_skew_smile, df_skew_smile_approx, df_strikes, df_term, df_IV, df_IV_approx
+    return RFSV_BF_Results(request_id, df_diagn, df_info, df_int_var_std, df_model, df_sim, df_skew_smile, df_skew_smile_approx, df_strikes, df_term, df_IV, df_IV_approx)
 
 # For other parameters calculation
 def parameter_with_H(H):
@@ -153,7 +159,6 @@ def BSM_imp_vol(S_0, K, T, price):
     else:
         o = optimize.root_scalar(error_imp_vol, args= (S_0,K,T,price), bracket= [0.0001, 5.], x0= 0.2, x1= 0.4)
     return o.root
-
 
 import pandas as pd
 import platform
@@ -357,7 +362,6 @@ def Sigma_Taylor_coefficients(H, rho, eta, xi, expiries):
         a_0 = a_0 + rho*sigma0_d*sigma0*sigma0*K1_1
     return sign_bound, Sigma0_d, Sigma0_dd, a_0
 
-
 def imp_vol_approx(K, K_skew, S_0, expiries, xi, H, rho, eta, tenor_len):
     sign_bound, Sigma0_d, Sigma0_dd, a_0 = Sigma_Taylor_coefficients(H, rho, eta, xi, expiries)
     Sigma0 = np.sqrt(xi[0])
@@ -480,7 +484,6 @@ def df_strikes_creation(K, strikes, S_0, tenor_len):
     df_strikes = pd.DataFrame(data = K_df.T, index = strikes, columns = col_names)
     df_strikes.index.name = 'Nstdev'
     return df_strikes
-
 
 def df_IV_creation(IV, strikes, tenor_len, c = ''):
     if IV.shape[0] < tenor_len:
