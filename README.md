@@ -1,4 +1,5 @@
 # RoughVol1
-Collaborative study of RoughVol: most code written by Augusto Marcon
+Studying RoughVol: most code written by Augusto Marcon
 
-FILL THIS IN
+As of 1.0.0:
+Bruteforce simulation of rBergomi
