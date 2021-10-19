@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-''' This module has the main() from RFSV bruteforce
+''' This module has the main() for RFSV bruteforce, rBergomi model
 with the overall logic:
 read inputs from excel input file
 open an excel writer for output excel file
@@ -9,12 +9,12 @@ loop over each request:
 finally close output excel file
 '''
 
-# importing all functions needed
-from RFSV_functions import *
-from RFSV_helpers import *
+from datetime import datetime
+from RFSV_functions import hard_coded_params, calculate_request
+from RFSV_helpers import read_args, get_and_check_input, create_new_workbook, write_results_to_sheet
 
 def main():
-    ''' The main'''
+    ''' The main for RFSV bruteforce, rBergomi model'''
     
     input_xlsx, row_list = read_args()
     
@@ -27,7 +27,7 @@ def main():
     writer = create_new_workbook(output_file)
         
     for row in row_list:
-        r = row-1        
+        r = row - 1        
         results = calculate_request(hc,df_input, r)        
         write_results_to_sheet(writer, results)
         

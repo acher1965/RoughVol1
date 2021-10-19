@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-''' This module has non-math helper functions for RFSV bruteforce:
+''' This module has non-math helper functions for RFSV bruteforce, rBergomi model:
 input, input checks, and output
 '''
 
