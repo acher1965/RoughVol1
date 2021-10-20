@@ -76,7 +76,6 @@ def get_inputs_from_row(df_input, row, tenor_len):
     xi_input_nan = (df_input.loc['Impvar1':'Impvar' + str(tenor_len)][row].to_numpy(dtype = 'float64', copy = True).reshape(tenor_len)) ** 2
     return RFSV_RowInputs(request_id, as_of, n, random_seed, S_0, underlying, H, eta, rho, expiries_nan, forward_input_nan, xi_input_nan)
 
-
 def create_new_workbook(filename):
     '''Create a new excel workbook and return it'''
     if (path.exists(filename)): 

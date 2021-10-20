@@ -31,7 +31,7 @@ def hard_coded_params():
 
 #Calculation of one request row
 RFSV_BF_Results = collections.namedtuple('RFSV_BF_Results',['request_id', 'df_diagn', 'df_info', 'df_int_var_std', 'df_model', 'df_sim', 'df_skew_smile', 'df_skew_smile_approx', 'df_strikes', 'df_term', 'df_IV', 'df_IV_approx'])
-def calculate_request(hc, df_input, row_inputs): 
+def calculate_request(hc, row_inputs): 
     ''' Run the simulations RFSV bruteforce-rBergomi for one request'''
     start_time = time.time()
     

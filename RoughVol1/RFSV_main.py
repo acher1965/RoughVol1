@@ -29,7 +29,7 @@ def main():
     for row in row_list:
         r = row - 1
         row_inputs = get_inputs_from_row(df_input, r, hc.tenor_len)
-        results = calculate_request(hc, df_input, row_inputs)
+        results = calculate_request(hc, row_inputs)
         write_results_to_sheet(writer, results)
         
     writer.close()
