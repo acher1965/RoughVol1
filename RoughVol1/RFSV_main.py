@@ -16,22 +16,26 @@ from RFSV_helpers import read_args, get_and_check_input, get_inputs_from_row, cr
 def main():
     ''' The main for RFSV bruteforce, rBergomi model'''
     
+    #get inputs
     input_xlsx, row_list = read_args()
     
     hc = hard_coded_params()
 
     destination, df_input = get_and_check_input(input_xlsx)
-    
-    output_file = destination + datetime.today().strftime('%Y%m%d') + '_' + datetime.now().time().strftime('%H%M%S') + '.xlsx'   
-    
-    writer = create_new_workbook(output_file)
         
+    #calculate
+    results = []
     for row in row_list:
         r = row - 1
         row_inputs = get_inputs_from_row(df_input, r, hc.tenor_len)
-        results = calculate_request(hc, row_inputs)
-        write_results_to_sheet(writer, results)
-        
+        results.append(calculate_request(hc, row_inputs))
+
+    #save to excel
+    output_file = destination + datetime.today().strftime('%Y%m%d') + '_' + datetime.now().time().strftime('%H%M%S') + '.xlsx'   
+    writer = create_new_workbook(output_file)        
+    for r in results:
+        write_results_to_sheet(writer, r)
+
     writer.close()
 
 if __name__ == '__main__':
