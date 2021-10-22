@@ -13,6 +13,7 @@ import time
 import collections # why this not working??  from collections import namedtuple
 import numpy as np
 from scipy import stats, special, optimize, integrate
+from RFSV_functions_MCPriceError import MC_err_price, df_C_err_creation
 
 #Hard Coded Parameters
 HardCodedParameters = collections.namedtuple('HardCodedParameters',['N_treshold', 'code_version', 'dK_skew', 'near_atm_strikes', 'strikes', 'tenor_len', 'dt_short', 'dt_inf', 'alpha'])
@@ -30,7 +31,7 @@ def hard_coded_params():
     return HardCodedParameters(N_treshold, code_version, dK_skew, near_atm_strikes, strikes, tenor_len, dt_short, dt_inf, alpha)
 
 #Calculation of one request row
-RFSV_BF_Results = collections.namedtuple('RFSV_BF_Results',['request_id', 'df_diagn', 'df_info', 'df_int_var_std', 'df_model', 'df_sim', 'df_skew_smile', 'df_skew_smile_approx', 'df_strikes', 'df_term', 'df_IV', 'df_IV_approx'])
+RFSV_BF_Results = collections.namedtuple('RFSV_BF_Results',['request_id', 'df_C_err', 'df_diagn', 'df_info', 'df_int_var_std', 'df_model', 'df_sim', 'df_skew_smile', 'df_skew_smile_approx', 'df_strikes', 'df_term', 'df_IV', 'df_IV_approx'])
 def calculate_request(hc, row_inputs): 
     ''' Run the simulations RFSV bruteforce-rBergomi for one request'''
     
@@ -52,6 +53,7 @@ def calculate_request(hc, row_inputs):
     logS, S, logv = spot_calculation(t, r.S_0, xi, r.eta, r.H, L, r.n, r.random_seed)
     
     K, C, K_skew, C_skew, warn = MC_strike_and_price(S, r.S_0 , expiries, t, hc.strikes, hc.dK_skew, xi, r.n, hc.N_treshold)
+    C_err = MC_err_price(S, K, r.S_0, r.n, expiries_index)
     IV, IV_skew = imp_vol_calculation(K, C, K_skew, C_skew, r.S_0, expiries)
     skew, smile = skew_smile_calculation(IV_skew, hc.dK_skew)
     sign_bound, Sigma0_d, Sigma0_dd, a_0 = Sigma_Taylor_coefficients(r.H, r.rho, r.eta, xi, expiries)
@@ -67,11 +69,12 @@ def calculate_request(hc, row_inputs):
     
     df_term = df_term_creation(expiries_nan, forward_input_nan, xi_input_nan)
     df_strikes = df_strikes_creation(K, hc.strikes, r.S_0, hc.tenor_len)
+    df_C_err = df_C_err_creation(C_err, hc.strikes, expiries, hc.tenor_len)
     IV_df, df_IV = df_IV_creation(IV, hc.strikes, hc.tenor_len)
     df_skew_smile = df_skew_smile_creation(skew, smile, IV_skew, IV_df, hc.strikes, hc.dK_skew, expiries_nan, hc.tenor_len)
     IV_approx_df, df_IV_approx = df_IV_creation(IV_approx, hc.strikes, hc.tenor_len, 'Approx')
     df_skew_smile_approx = df_skew_smile_creation(skew_approx, smile_approx, IV_skew_approx, IV_approx_df, hc.strikes, hc.dK_skew, expiries_nan, hc.tenor_len)
-    return RFSV_BF_Results(r.request_id, df_diagn, df_info, df_int_var_std, df_model, df_sim, df_skew_smile, df_skew_smile_approx, df_strikes, df_term, df_IV, df_IV_approx)
+    return RFSV_BF_Results(r.request_id, df_C_err, df_diagn, df_info, df_int_var_std, df_model, df_sim, df_skew_smile, df_skew_smile_approx, df_strikes, df_term, df_IV, df_IV_approx)
 
 # For other parameters calculation
 def parameter_with_H(H):

@@ -13,6 +13,7 @@ import time
 from datetime import datetime
 from RFSV_functions import hard_coded_params, calculate_request
 from RFSV_helpers import read_args, get_and_check_input, get_inputs_from_row, create_new_workbook, write_results_to_sheet
+from RFSV_functions_MCPriceError import MC_err_price, df_C_err_creation, writing_results
 
 def main():
     ''' The main for RFSV bruteforce, rBergomi model'''

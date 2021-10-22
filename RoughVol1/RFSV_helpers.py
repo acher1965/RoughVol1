@@ -90,7 +90,7 @@ def write_results_to_sheet(writer, results):
     r = results
     sheet_name = 'Id' + str(r.request_id)
     writing_parameters_col(writer, r.df_info, r.df_model, r.df_sim, r.df_diagn, r.df_int_var_std, sheet_name)
-    writing_results(writer, r.df_term, r.df_strikes, r.df_IV, r.df_skew_smile, r.df_IV_approx, r.df_skew_smile_approx, sheet_name)
+    writing_results(writer, r.df_term, r.df_strikes, r.df_IV, r.df_skew_smile, r.df_IV_approx, r.df_skew_smile_approx, r.df_C_err, sheet_name)
     #writer.save()
     return
 
@@ -106,7 +106,7 @@ def writing_parameters_col(writer, df_info, df_model, df_sim, df_diagn, df_int_v
     startrow = startrow + df_diagn.shape[0] + 2
     df_int_var_std.to_excel(writer, header = True, index = True, startrow = startrow, sheet_name = sheet_name)
 
-def writing_results(writer, df_term, df_strikes, df_IV, df_skew_smile, df_IV_approx, df_skew_smile_approx, sheet_name):
+def writing_results(writer, df_term, df_strikes, df_IV, df_skew_smile, df_IV_approx, df_skew_smile_approx, df_C_std, sheet_name):
     startrow = 0
     df_term.to_excel(writer, header = None, index = True, na_rep = '#N/A', startcol = 3,
                     startrow = startrow, sheet_name = sheet_name)
@@ -124,4 +124,8 @@ def writing_results(writer, df_term, df_strikes, df_IV, df_skew_smile, df_IV_app
                   startrow = startrow, sheet_name = sheet_name)  
     startrow = startrow + df_IV_approx.shape[0] + 1    
     df_skew_smile_approx.to_excel(writer, header = True, index = True, na_rep = '#N/A', startcol = 3, 
-                  startrow = startrow, sheet_name = sheet_name)   
+                  startrow = startrow, sheet_name = sheet_name)
+    startrow = startrow + df_skew_smile_approx.shape[0] + 1
+    df_C_std.to_excel(writer, header = True, index = True, na_rep = '#N/A', startcol = 3,
+                        startrow = startrow, sheet_name = sheet_name)
+    
