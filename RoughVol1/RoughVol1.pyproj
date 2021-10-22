@@ -25,6 +25,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="RFSV_bruteforce_stdPrice.py" />
     <Compile Include="RFSV_main.py" />
     <Compile Include="RFSV_helpers.py" />
     <Compile Include="RFSV_functions.py" />
