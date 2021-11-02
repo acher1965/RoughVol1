@@ -12,7 +12,7 @@
     <Name>RoughVol1</Name>
     <RootNamespace>RoughVol1</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-f C:/Users/abech/OneDrive/EQFAugustoShare/Alberto/Running -x RFSV_input_AC2.xlsx 1 2 3</CommandLineArguments>
+    <CommandLineArguments>-f C:/Users/abech/OneDrive/EQFAugustoShare/Alberto/Running -x RFSV_input_AC2.xlsx 34 35 36 37</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
@@ -25,7 +25,6 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="RFSV_bruteforce_stdPrice.py" />
     <Compile Include="RFSV_main.py" />
     <Compile Include="RFSV_helpers.py" />
     <Compile Include="RFSV_functions.py" />
