@@ -52,7 +52,7 @@ def get_and_check_input(input_path):
     destination = destinations[0]
     for d in destinations:
         if(d != destination):
-            printf('destination must be the same in all rows in the row_list')
+            print('destination must be the same in all rows in the row_list')
             exit(1)
     
     return destination, df_input_T

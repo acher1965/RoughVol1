@@ -13,7 +13,7 @@ import time
 import collections # why this not working??  from collections import namedtuple
 import numpy as np
 from scipy import stats, special, optimize, integrate
-from RFSV_functions_MCPriceError import MC_err_price, df_C_err_creation
+from RFSV_functions_MCPriceError import MC_err_price, BSM_vega, vega_error_IV, df_IV_err_creation
 
 #Hard Coded Parameters
 HardCodedParameters = collections.namedtuple('HardCodedParameters',['N_treshold', 'code_version', 'dK_skew', 'near_atm_strikes', 'strikes', 'tenor_len', 'dt_short', 'dt_inf', 'alpha'])
@@ -43,7 +43,7 @@ def calculate_request(hc, row_inputs):
     [expiries_nan, forward_input_nan, xi_input_nan] = arrays_for_output(expiries, forward_input, xi_input, hc.tenor_len)
     
     t, mv = t_from_dt_e(hc.dt_short, hc.dt_inf, hc.alpha, expiries)
-    T = expiries[-1]
+    T = 1
     expiries_index = np.where(np.isin(t, expiries))[0]  
     xi, xi_values = interpolating_xi(xi_input, expiries, mv)
     
@@ -55,6 +55,7 @@ def calculate_request(hc, row_inputs):
     K, C, K_skew, C_skew, warn = MC_strike_and_price(S, r.S_0 , expiries, t, hc.strikes, hc.dK_skew, xi, r.n, hc.N_treshold)
     C_err = MC_err_price(S, K, r.S_0, r.n, expiries_index)
     IV, IV_skew = imp_vol_calculation(K, C, K_skew, C_skew, r.S_0, expiries)
+    IV_err = vega_error_IV(C_err, K, r.S_0, IV, expiries)
     skew, smile = skew_smile_calculation(IV_skew, hc.dK_skew)
     sign_bound, Sigma0_d, Sigma0_dd, a_0 = Sigma_Taylor_coefficients(r.H, r.rho, r.eta, xi, expiries)
     IV_approx, skew_approx, smile_approx, IV_skew_approx = imp_vol_approx(K, K_skew, r.S_0, expiries, xi, r.H, r.rho, r.eta, hc.tenor_len)
@@ -65,11 +66,11 @@ def calculate_request(hc, row_inputs):
     end_time = time.time()
     total_time = end_time - start_time
     df_diagn = df_diagn_creation(hc.dK_skew, hc.dt_short, hc.dt_inf, hc.alpha, total_time, hc.code_version, Sigma0_d, Sigma0_dd, a_0)
-    df_int_var_std = df_integ_var_std_creation(logS, logv, xi_input, xi_values, t, expiries, xi, r.H, r.eta, T)
+    df_int_var_std = pd.DataFrame() #df_integ_var_std_creation(logS, logv, xi_input, xi_values, t, expiries, xi, r.H, r.eta, T)
     
     df_term = df_term_creation(expiries_nan, forward_input_nan, xi_input_nan)
     df_strikes = df_strikes_creation(K, hc.strikes, r.S_0, hc.tenor_len)
-    df_C_err = df_C_err_creation(C_err, hc.strikes, expiries, hc.tenor_len)
+    df_C_err = df_IV_err_creation(IV_err, hc.strikes, expiries_nan, hc.tenor_len) #df_C_err_creation(C_err, hc.strikes, expiries, hc.tenor_len)
     IV_df, df_IV = df_IV_creation(IV, hc.strikes, hc.tenor_len)
     df_skew_smile = df_skew_smile_creation(skew, smile, IV_skew, IV_df, hc.strikes, hc.dK_skew, expiries_nan, hc.tenor_len)
     IV_approx_df, df_IV_approx = df_IV_creation(IV_approx, hc.strikes, hc.tenor_len, 'Approx')
