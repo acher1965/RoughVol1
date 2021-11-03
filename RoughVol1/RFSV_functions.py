@@ -66,7 +66,10 @@ def calculate_request(hc, row_inputs):
     end_time = time.time()
     total_time = end_time - start_time
     df_diagn = df_diagn_creation(hc.dK_skew, hc.dt_short, hc.dt_inf, hc.alpha, total_time, hc.code_version, Sigma0_d, Sigma0_dd, a_0)
-    df_int_var_std = pd.DataFrame() #df_integ_var_std_creation(logS, logv, xi_input, xi_values, t, expiries, xi, r.H, r.eta, T)
+    if (r.full_diagn_flag == True):
+        df_int_var_std = df_integ_var_std_creation(logS, logv, xi_input, xi_values, t, expiries, xi, r.H, r.eta, T)
+    else:
+        df_int_var_std = pd.DataFrame()
     
     df_term = df_term_creation(expiries_nan, forward_input_nan, xi_input_nan)
     df_strikes = df_strikes_creation(K, hc.strikes, r.S_0, hc.tenor_len)
