@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-''' This module has non-math helper functions for RFSV bruteforce, rBergomi model:
-input, input checks, and output
+'''Non-Math helper functions for input, checks, and output
+
+For RFSV bruteforce, rBergomi model
 '''
 
 import numpy as np
@@ -10,7 +11,7 @@ from os import path, chdir
 import collections # why this not working??  from collections import namedtuple
 
 def read_args():
-    ''' read the command line arguments'''
+    '''Read the command line arguments'''
     # e.g.: --help
     # or: -f C:/Users/abech/OneDrive/EQFAugustoShare/Alberto/Running -x
     # RFSV_input_AC.xlsx 1 2 3 20
@@ -35,14 +36,14 @@ def read_args():
     return input_xlsx, row_list
 
 def check_request_list(row_list):
-    ''' TODO add more checks'''
+    '''TODO add more checks'''
     # consistency of destination across all rows requested
     if not(isinstance(row_list, list)):
         print("'row_list' must be a list, even with just an element.")
         exit(1)
 
 def get_and_check_input(input_path):
-    ''' get inputs common to this set of requests, and check them for consistency'''
+    '''Get inputs common to this set of requests, and check them for consistency'''
     df_input = pd.read_excel(input_path, header = 0, skiprows = 1)
     index = df_input.columns
     df_input_T = df_input.T
@@ -59,7 +60,7 @@ def get_and_check_input(input_path):
 
 RFSV_RowInputs = collections.namedtuple('RFSV_RowInputs',['request_id', 'as_of', 'n', 'random_seed', 'S_0', 'underlying', 'H', 'eta', 'rho', 'full_diagn_flag', 'expiries_nan', 'forward_input_nan', 'xi_input_nan'])
 def get_inputs_from_row(df_input, row, tenor_len):
-    ''' get row specific inputs '''
+    '''Get row specific inputs '''
     
     request_id = df_input.loc['Row'][row]
     as_of = df_input.loc['Date'][row].strftime('%d-%m-%Y')   # changing format using strftime(), see https://strftime.org/
@@ -87,7 +88,7 @@ def create_new_workbook(filename):
     return writer
 
 def write_results_to_sheet(writer, results):
-    ''' Adds a sheet to workbook 'writer' and writes the results of this request to it'''
+    '''Adds a sheet to workbook 'writer' and writes the results of this request to it'''
     r = results
     sheet_name = 'Id' + str(r.request_id)
     writing_parameters_col(writer, r.df_info, r.df_model, r.df_sim, r.df_diagn, r.df_int_var_std, sheet_name)

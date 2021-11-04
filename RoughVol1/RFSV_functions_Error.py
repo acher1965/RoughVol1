@@ -1,15 +1,23 @@
 '''
-Functions created for the calculation of a matrix which values are 
-an estimate of the error of the implied volatility grid coming from 
-the MC method used to compute vanilla options.
+To calculate a matrix with estimated errors of the implied volatility from MC for vanilla options
+
+*df_IV_err_calc  returns a dataframe with the matrix
+
+It calls other functions defined here
 '''
 
 import numpy as np
 import pandas as pd
 from scipy import stats
 
+def df_IV_err_calc(S, K, S_0, n, expiries_index, IV, expiries, strikes, expiries_nan, tenor_len):
+    '''Returns the dataframe with matrix of MC IV errors'''
+    C_err = MC_err_price(S, K, S_0, n, expiries_index)
+    IV_err = vega_error_IV(C_err, K, S_0, IV, expiries)
+    return df_IV_err_creation(IV_err, strikes, expiries_nan, tenor_len)
+
 def MC_err_price(S, K, S_0, n, expiries_index):
-    C_err = np.zeros_like(K)        # Matrix of MC prices
+    C_err = np.zeros_like(K)
     for i in range(K.shape[0]):
         for j in range(C_err.shape[1]):
             if np.isnan(C_err[i,j]):

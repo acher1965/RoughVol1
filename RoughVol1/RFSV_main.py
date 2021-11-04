@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-''' This module has the main() for RFSV bruteforce, rBergomi model
-with the overall logic:
+'''The main() for RFSV bruteforce, rBergomi model.
+
+Overall logic:
 read inputs from excel input file
 open an excel writer for output excel file
 loop over each request:
@@ -15,17 +16,17 @@ from RFSV_functions import hard_coded_params, calculate_request
 from RFSV_helpers import read_args, get_and_check_input, get_inputs_from_row, create_new_workbook, write_results_to_sheet
 
 def main():
-    ''' The main for RFSV bruteforce, rBergomi model'''
+    '''The main for RFSV bruteforce, rBergomi model'''
     
     start_time = time.time()
 
     #get inputs
     input_xlsx, row_list = read_args()
-    
+        
     hc = hard_coded_params()
 
     destination, df_input = get_and_check_input(input_xlsx)
-        
+    
     #calculate
     results = []
     for row in row_list:
@@ -37,7 +38,7 @@ def main():
     print('End of calculations, saving ...')
 
     #save to excel
-    output_file = destination + datetime.today().strftime('%Y%m%d') + '_' + datetime.now().time().strftime('%H%M%S') + '.xlsx'   
+    output_file = destination + datetime.now().strftime('%Y%m%d_%H%M%S_') + '_'.join([str(id) for id in row_list]) + '.xlsx'
     writer = create_new_workbook(output_file)        
     for r in results:
         write_results_to_sheet(writer, r)
