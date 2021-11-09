@@ -58,7 +58,7 @@ def get_and_check_input(input_path):
     
     return destination, df_input_T
 
-RFSV_RowInputs = collections.namedtuple('RFSV_RowInputs',['request_id', 'as_of', 'n', 'random_seed', 'S_0', 'underlying', 'H', 'eta', 'rho', 'full_diagn_flag', 'expiries_nan', 'forward_input_nan', 'xi_input_nan'])
+RFSV_RowInputs = collections.namedtuple('RFSV_RowInputs',['request_id', 'as_of', 'n', 'random_seed', 'S_0', 'underlying', 'H', 'eta', 'rho', 'full_diagn_flag', 'full_output_flag', 'expiries_nan', 'forward_input_nan', 'xi_input_nan'])
 def get_inputs_from_row(df_input, row, tenor_len):
     '''Get row specific inputs '''
     
@@ -72,11 +72,12 @@ def get_inputs_from_row(df_input, row, tenor_len):
     eta = df_input.loc['VolVol(Eta)'][row]
     rho = df_input.loc['Correlation(Rho)'][row]
     full_diagn_flag = df_input.loc['FullDiagnostic'][row]
+    full_output_flag = df_input.loc['FullOutput'][row]
 
     expiries_nan = df_input.loc['Tenor1':'Tenor' + str(tenor_len)][row].to_numpy(dtype = 'float64', copy = True).reshape(tenor_len)
     forward_input_nan = df_input.loc['Fwd1':'Fwd' + str(tenor_len)][row].to_numpy(dtype = 'float64', copy = True).reshape(tenor_len)
     xi_input_nan = (df_input.loc['Impvar1':'Impvar' + str(tenor_len)][row].to_numpy(dtype = 'float64', copy = True).reshape(tenor_len)) ** 2
-    return RFSV_RowInputs(request_id, as_of, n, random_seed, S_0, underlying, H, eta, rho, full_diagn_flag, expiries_nan, forward_input_nan, xi_input_nan)
+    return RFSV_RowInputs(request_id, as_of, n, random_seed, S_0, underlying, H, eta, rho, full_diagn_flag, full_output_flag, expiries_nan, forward_input_nan, xi_input_nan)
 
 def create_new_workbook(filename):
     '''Create a new excel workbook and return it'''

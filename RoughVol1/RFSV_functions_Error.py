@@ -53,3 +53,28 @@ def df_IV_err_creation(IV_err, strikes, expiries_nan, tenor_len):
     df_err_IV = pd.DataFrame(data = IV_err_df.T, index = strikes, columns = expiries_nan)
     df_err_IV.index.name = 'ImpVolError'
     return df_err_IV
+
+def fit_cost_calculation(IV, volgrid, tenor_len):
+    '''Function to compute uniform fitting squared error'''
+    fit_cost_matr = IV.T**2 - volgrid**2
+    fit_cost_exp = np.nanmean(fit_cost_matr, axis = 0)
+    fit_cost_global = np.nanmean(fit_cost_matr)
+    if fit_cost_exp.size < tenor_len:
+        to_add = np.ones(tenor_len - fit_cost_exp.size)*np.nan
+        fit_cost_arr = np.hstack([fit_cost_exp, to_add])
+    fit_cost_arr = np.hstack([fit_cost_exp, fit_cost_global])
+    return fit_cost_arr[:,np.newaxis]
+
+def cost_row_df_creation(cost_row, tenor_len):
+    cost_exp_names = ['CostExpiry'+str(i) for i in range(1,tenor_len+1)] + ['GlobalCost']
+    col_names = ['Id', 'Underlying', 'AsOf', 'H', 'eta', 'rho' ] + cost_exp_names
+    df_cost_row = pd.DataFrame(cost_row.T, columns = col_names)
+    return df_cost_row
+
+def create_and_write_df_cost(output_path, results):
+    df_cost = pd.DataFrame()
+    for r in results:
+        df_cost = pd.concat([df_cost, r.df_cost_row])
+    output_path_cost = output_path.replace(".xlsx", "_cost.xlsx")
+    with pd.ExcelWriter(output_path_cost, mode="w", engine="openpyxl") as writer:
+        df_cost.to_excel(writer, header = True, index = False, sheet_name = "FittingCost")
