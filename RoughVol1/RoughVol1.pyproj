@@ -12,7 +12,7 @@
     <Name>RoughVol1</Name>
     <RootNamespace>RoughVol1</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-f C:\Users\amarc\OneDrive\EQFAugustoShare\Augusto -x RFSV_input_InGuess.xlsx 1 2 3 4</CommandLineArguments>
+    <CommandLineArguments>-f C:\Users\amarc\OneDrive\EQFAugustoShare\Augusto -x RFSV_input_InGuess.xlsx  11 12 13 14 15 16 17 18 19 20</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>

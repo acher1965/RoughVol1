@@ -54,15 +54,22 @@ def df_IV_err_creation(IV_err, strikes, expiries_nan, tenor_len):
     df_err_IV.index.name = 'ImpVolError'
     return df_err_IV
 
-def fit_cost_calculation(IV, volgrid, tenor_len):
-    '''Function to compute uniform fitting squared error'''
-    fit_cost_matr = IV.T**2 - volgrid**2
-    fit_cost_exp = np.nanmean(fit_cost_matr, axis = 0)
-    fit_cost_global = np.nanmean(fit_cost_matr)
+def fit_cost_calculation(IV, volgrid, weigthsgrid, tenor_len):
+    '''Function to compute fitting weighted squared error'''
+    fit_cost_matr = weigthsgrid*(IV.T - volgrid)**2
+    fit_cost_exp = np.zeros(fit_cost_matr.shape[1])
+    for i in range(fit_cost_matr.shape[1]):
+        tmp = np.isfinite(fit_cost_matr[:,i])
+        fit_cost_exp[i] = np.sum(fit_cost_matr[:,i][tmp])/np.sum(weigthsgrid[:,i][tmp])
+    
+    tmp = np.isfinite(fit_cost_matr)    
+    fit_cost_global = np.sum(fit_cost_matr, where = tmp)/np.sum(weigthsgrid, where = tmp)
+    
     if fit_cost_exp.size < tenor_len:
         to_add = np.ones(tenor_len - fit_cost_exp.size)*np.nan
         fit_cost_arr = np.hstack([fit_cost_exp, to_add])
-    fit_cost_arr = np.hstack([fit_cost_exp, fit_cost_global])
+    
+    fit_cost_arr = np.hstack([fit_cost_exp, fit_cost_global]) 
     return fit_cost_arr[:,np.newaxis]
 
 def cost_row_df_creation(cost_row, tenor_len):
