@@ -1,0 +1,22 @@
+repos:
+  - repo: local
+    hooks:
+      - id: black
+        name: black
+        entry: black
+        language: python
+        additional_dependencies: [black==23.9.1]
+        types: [python]
+      - id: isort
+        name: isort
+        entry: isort
+        language: python
+        additional_dependencies: [isort==5.13.0]
+        types: [python]
+      - id: mypy
+        name: mypy
+        entry: mypy --config-file mypy.ini RoughVol1
+        language: python
+        additional_dependencies: [mypy==1.19.1]
+        types: [python]
+        pass_filenames: false

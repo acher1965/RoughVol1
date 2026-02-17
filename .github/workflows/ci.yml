@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Syntax check
+        run: python -m py_compile RoughVol1/*.py
+      - name: Type check (mypy)
+        run: |
+          pip install mypy
+          python -m mypy --config-file mypy.ini RoughVol1
+      - name: Run tests
+        run: pytest -q
