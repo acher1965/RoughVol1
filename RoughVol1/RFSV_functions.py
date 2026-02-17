@@ -17,6 +17,7 @@ from typing import Any, Optional, Tuple
 
 import numpy as np
 from numpy.typing import NDArray
+from RoughVol1 import __version__
 from RFSV_functions_Error import (
     cost_row_df_creation,
     df_IV_err_calc,
@@ -51,7 +52,7 @@ def hard_coded_params() -> HardCodedParameters:
 
     dK_skew = 0.01  # also for smile
     tenor_len = 10  # default length of tenor
-    code_version = "RFSV_bruteforce_1_0_0"
+    code_version = f"RFSV_bruteforce_{__version__.replace('.', '_')}"
     return HardCodedParameters(
         N_treshold,
         code_version,

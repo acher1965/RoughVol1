@@ -3,6 +3,7 @@
 Rough volatility experiments and rBergomi-based simulation and calibration.
 
 Note: Version 1.1 is the last human-only version.
+The canonical version is stored in [RoughVol1/__init__.py](RoughVol1/__init__.py) as `__version__`.
 
 ## What this does
 - Simulates rBergomi paths and prices options.
